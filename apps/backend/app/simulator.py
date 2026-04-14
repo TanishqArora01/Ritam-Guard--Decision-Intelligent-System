@@ -6,10 +6,13 @@ import time
 import uuid
 from collections import deque
 from datetime import datetime, timezone
+from typing import Awaitable, Callable, Optional
 
 from app.models import Transaction
 from app.scoring import compute_risk_score
 from app.graph import generate_graph
+
+BroadcastCallback = Callable[[str, str], Awaitable[None]]
 
 # ---------------------------------------------------------------------------
 # Global in-memory stores (shared with routes)
@@ -19,7 +22,7 @@ cases: dict[str, dict] = {}
 metrics_history: deque[dict] = deque(maxlen=60)
 
 # WebSocket broadcast callback – injected by the WS manager at startup
-_broadcast_callback: asyncio.coroutines = None  # type: ignore[assignment]
+_broadcast_callback: Optional[BroadcastCallback] = None
 
 # ---------------------------------------------------------------------------
 # Static mock data
@@ -153,6 +156,10 @@ def _generate_transaction() -> Transaction:
         _review_count += 1
 
     return txn
+
+
+def compute_metrics() -> dict:
+    return _compute_metrics()
 
 
 def _compute_metrics() -> dict:
