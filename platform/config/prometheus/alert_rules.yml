@@ -1,0 +1,95 @@
+# =============================================================================
+# Prometheus Alert Rules — Fraud Detection System
+# =============================================================================
+
+groups:
+
+  # ---------------------------------------------------------------------------
+  # Infrastructure Alerts
+  # ---------------------------------------------------------------------------
+  - name: infrastructure
+    rules:
+
+      - alert: ServiceDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Service {{ $labels.job }} is down"
+          description: "{{ $labels.instance }} has been down for more than 1 minute."
+
+      - alert: HighMemoryUsage
+        expr: (container_memory_usage_bytes / container_spec_memory_limit_bytes) > 0.85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage on {{ $labels.name }}"
+          description: "Container {{ $labels.name }} memory usage is above 85%."
+
+  # ---------------------------------------------------------------------------
+  # Business / Fraud Alerts
+  # ---------------------------------------------------------------------------
+  - name: fraud_detection
+    rules:
+
+      - alert: HighFraudRate
+        expr: rate(fraud_decisions_total{action="BLOCK"}[5m]) / rate(fraud_decisions_total[5m]) > 0.15
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Fraud rate spike detected"
+          description: "Block rate exceeded 15% in the last 5 minutes — possible fraud wave."
+
+      - alert: HighFalsePositiveRate
+        expr: rate(fraud_false_positives_total[10m]) / rate(fraud_decisions_total[10m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High false positive rate"
+          description: "False positive rate exceeds 5% — customer friction increasing."
+
+      - alert: DecisionLatencyHigh
+        expr: histogram_quantile(0.95, rate(fraud_decision_latency_ms_bucket[5m])) > 200
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Decision latency p95 > 200ms"
+          description: "95th percentile latency is {{ $value }}ms — SLO breached."
+
+      - alert: Stage1EarlyExitRateAnomaly
+        expr: rate(fraud_stage1_early_exit_total[5m]) / rate(fraud_stage1_total[5m]) < 0.5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Stage 1 early exit rate dropped below 50%"
+          description: "Unusual proportion of transactions reaching Stage 2 — possible attack or model drift."
+
+      - alert: ModelDriftDetected
+        expr: fraud_model_psi_score > 0.2
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Model drift detected (PSI > 0.2)"
+          description: "Feature distribution has shifted significantly — retraining recommended."
+
+  # ---------------------------------------------------------------------------
+  # Kafka / Redpanda Alerts
+  # ---------------------------------------------------------------------------
+  - name: kafka
+    rules:
+
+      - alert: KafkaConsumerLag
+        expr: kafka_consumer_group_lag > 50000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Kafka consumer lag high on {{ $labels.topic }}"
+          description: "Consumer group {{ $labels.group }} lag is {{ $value }} on topic {{ $labels.topic }}."

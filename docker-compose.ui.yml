@@ -1,0 +1,108 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: fraud_postgres_ui
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-fraud_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-fraud_secret_2024}
+      POSTGRES_DB: ${POSTGRES_DB:-fraud_db}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./platform/scripts/init_postgres.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-fraud_admin} -d ${POSTGRES_DB:-fraud_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:24.3-alpine
+    container_name: fraud_clickhouse_ui
+    restart: unless-stopped
+    environment:
+      CLICKHOUSE_USER: ${CLICKHOUSE_USER:-fraud_admin}
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-fraud_secret_2024}
+      CLICKHOUSE_DB: ${CLICKHOUSE_DB:-fraud_analytics}
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+      - ./platform/config/clickhouse/users.xml:/etc/clickhouse-server/users.d/users.xml:ro
+      - ./platform/config/clickhouse/config.xml:/etc/clickhouse-server/config.d/config.xml:ro
+      - ./platform/scripts/init_clickhouse.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://127.0.0.1:8123/ping || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+
+  app-backend:
+    build:
+      context: ./apps/backend-api
+      dockerfile: Dockerfile
+    image: fraud-app-backend:latest
+    container_name: fraud_app_backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      clickhouse:
+        condition: service_healthy
+    ports:
+      - "8405:8400"
+    environment:
+      HOST: 0.0.0.0
+      PORT: "8400"
+      POSTGRES_DSN: postgresql+asyncpg://${POSTGRES_USER:-fraud_admin}:${POSTGRES_PASSWORD:-fraud_secret_2024}@postgres:5432/${POSTGRES_DB:-fraud_db}
+      CLICKHOUSE_HOST: clickhouse
+      CLICKHOUSE_PORT: "9000"
+      CLICKHOUSE_USER: ${CLICKHOUSE_USER:-fraud_admin}
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-fraud_secret_2024}
+      CLICKHOUSE_DB: ${CLICKHOUSE_DB:-fraud_analytics}
+      GATEWAY_URL: http://api-gateway:8000
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production-fraud2024!}
+      JWT_EXPIRE_MINUTES: "60"
+      JWT_REFRESH_EXPIRE_MINUTES: "10080"
+      CORS_ORIGINS: http://localhost:3001,http://localhost:3005,http://frontend:3001
+      SEED_ADMIN_USER: admin
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-admin2024!}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8400/health || exit 1"]
+      interval: 15s
+      timeout: 8s
+      retries: 5
+      start_period: 20s
+
+  frontend:
+    build:
+      context: ./apps/web-portal
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:8405
+        BACKEND_URL: http://app-backend:8400
+    image: fraud-frontend:latest
+    container_name: fraud_frontend
+    restart: unless-stopped
+    depends_on:
+      app-backend:
+        condition: service_healthy
+    ports:
+      - "3005:3001"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8405
+      BACKEND_URL: http://app-backend:8400
+      HOSTNAME: 0.0.0.0
+      PORT: "3001"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3001 || exit 1"]
+      interval: 20s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+volumes:
+  postgres_data:
+  clickhouse_data:

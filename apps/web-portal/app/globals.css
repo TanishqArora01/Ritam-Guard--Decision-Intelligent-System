@@ -1,0 +1,82 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    font-family: 'Space Grotesk', 'IBM Plex Sans', 'Sora', ui-sans-serif, system-ui;
+    color-scheme: dark;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    background: #0b0f1a;
+  }
+
+  body {
+    @apply bg-slate-950 text-slate-100 antialiased;
+    background:
+      radial-gradient(circle at top left, rgba(56, 189, 248, 0.12), transparent 32%),
+      radial-gradient(circle at top right, rgba(168, 85, 247, 0.10), transparent 28%),
+      linear-gradient(180deg, #0b0f1a 0%, #090d16 100%);
+  }
+
+  * {
+    @apply border-slate-800;
+  }
+
+  ::selection {
+    background: rgba(34, 211, 238, 0.22);
+    color: #ffffff;
+  }
+}
+
+@layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, 0.6) transparent;
+  }
+
+  .glass-panel {
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.82), rgba(15, 23, 42, 0.62));
+    box-shadow:
+      0 18px 60px rgba(0, 0, 0, 0.35),
+      inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+
+  .shadow-glow {
+    box-shadow:
+      0 16px 44px rgba(0, 0, 0, 0.28),
+      0 0 0 1px rgba(255, 255, 255, 0.04),
+      0 0 30px rgba(56, 189, 248, 0.08);
+  }
+
+  .text-grid {
+    background-image: linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  .animate-float-slow {
+    animation: floatSlow 14s ease-in-out infinite;
+  }
+
+  .animate-float-slower {
+    animation: floatSlow 18s ease-in-out infinite reverse;
+  }
+
+  .animate-shimmer {
+    background: linear-gradient(90deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.10) 50%, rgba(255,255,255,0.04) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+}
+
+@keyframes floatSlow {
+  0%, 100% { transform: translateY(0px) translateX(0px) scale(1); }
+  50% { transform: translateY(-18px) translateX(8px) scale(1.03); }
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}

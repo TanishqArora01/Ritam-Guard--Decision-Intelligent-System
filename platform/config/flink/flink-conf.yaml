@@ -1,0 +1,45 @@
+# =============================================================================
+# Flink Configuration — Stream Processing for Feature Engineering
+# =============================================================================
+
+jobmanager.rpc.address: flink-jobmanager
+jobmanager.rpc.port: 6123
+jobmanager.bind-host: 0.0.0.0
+jobmanager.memory.process.size: 1024m
+
+taskmanager.bind-host: 0.0.0.0
+taskmanager.host: flink-taskmanager
+taskmanager.memory.process.size: 3072m
+taskmanager.numberOfTaskSlots: 4
+
+parallelism.default: 2
+
+# Checkpointing — use MinIO as checkpoint storage
+state.backend: rocksdb
+state.backend.incremental: true
+state.checkpoints.dir: s3://flink-checkpoints/checkpoints
+state.savepoints.dir: s3://flink-checkpoints/savepoints
+execution.checkpointing.interval: 60000
+execution.checkpointing.mode: EXACTLY_ONCE
+execution.checkpointing.timeout: 600000
+execution.checkpointing.min-pause: 5000
+
+# S3 / MinIO access
+s3.endpoint: http://minio:9000
+s3.path.style.access: true
+s3.access-key: fraud_minio
+s3.secret-key: fraud_minio_2024
+
+# REST / Web UI
+rest.port: 8081
+rest.bind-address: 0.0.0.0
+web.submit.enable: true
+
+# Kafka connector defaults
+kafka.consumer.group.id: flink-fraud-detection
+kafka.consumer.auto.offset.reset: latest
+
+# Metrics
+metrics.reporters: prometheus
+metrics.reporter.prometheus.factory.class: org.apache.flink.metrics.prometheus.PrometheusReporterFactory
+metrics.reporter.prometheus.port: 9250

@@ -1,0 +1,28 @@
+{
+  "environments": {
+    "ci": {
+      "target_tps": 50,
+      "duration_seconds": 30,
+      "p95_latency_ms": 2000,
+      "p99_latency_ms": 5000,
+      "error_rate_pct": 2.0,
+      "min_actual_tps": 20
+    },
+    "staging": {
+      "target_tps": 200,
+      "duration_seconds": 60,
+      "p95_latency_ms": 500,
+      "p99_latency_ms": 1000,
+      "error_rate_pct": 1.0,
+      "min_actual_tps": 150
+    },
+    "production": {
+      "target_tps": 500,
+      "duration_seconds": 120,
+      "p95_latency_ms": 200,
+      "p99_latency_ms": 1000,
+      "error_rate_pct": 0.5,
+      "min_actual_tps": 400
+    }
+  }
+}

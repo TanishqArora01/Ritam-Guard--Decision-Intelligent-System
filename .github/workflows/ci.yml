@@ -1,0 +1,95 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main, develop, staging]
+  push:
+    branches: [develop]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install Python linters
+        run: pip install ruff==0.4.4 bandit==1.7.9
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: apps/web-portal/package-lock.json
+
+      - name: Install frontend deps
+        run: npm ci --prefix apps/web-portal
+
+      - name: Run lint
+        run: bash scripts/ci/lint.sh
+
+  test:
+    name: Tests
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install test dependencies
+        run: |
+          pip install pytest==8.2.0 pytest-asyncio==0.23.7 numpy==1.26.4 pydantic==2.7.1
+
+      - name: Run tests
+        run: bash scripts/ci/test.sh
+
+  compose-validate:
+    name: Compose validation
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install PyYAML
+        run: pip install pyyaml==6.0.1
+
+      - name: Validate compose file
+        run: bash scripts/ci/compose_validate.sh
+
+  typecheck:
+    name: TypeScript
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: apps/web-portal/package-lock.json
+
+      - name: Install frontend deps
+        run: npm ci --prefix apps/web-portal
+
+      - name: TypeScript check
+        run: npx --prefix apps/web-portal tsc --noEmit

@@ -1,0 +1,144 @@
+{
+  "title": "Fraud Detection — Operations Dashboard",
+  "uid": "fraud-ops-v1",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "10s",
+  "time": { "from": "now-1h", "to": "now" },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Decision Throughput (TPS)",
+      "type": "stat",
+      "gridPos": { "x": 0, "y": 0, "w": 6, "h": 4 },
+      "targets": [{
+        "expr": "sum(rate(stage3_decisions_total[1m]))",
+        "legendFormat": "Decisions/sec"
+      }],
+      "options": {
+        "colorMode": "background",
+        "thresholds": { "steps": [
+          {"color":"green","value":null},
+          {"color":"yellow","value":500},
+          {"color":"red","value":900}
+        ]}
+      }
+    },
+    {
+      "id": 2,
+      "title": "Action Distribution",
+      "type": "piechart",
+      "gridPos": { "x": 6, "y": 0, "w": 6, "h": 4 },
+      "targets": [{
+        "expr": "sum by (action) (rate(stage3_decisions_total[5m]))",
+        "legendFormat": "{{action}}"
+      }]
+    },
+    {
+      "id": 3,
+      "title": "Fraud Detection Rate (%)",
+      "type": "gauge",
+      "gridPos": { "x": 12, "y": 0, "w": 6, "h": 4 },
+      "targets": [{
+        "expr": "100 * sum(rate(stage3_decisions_total{action='BLOCK'}[5m])) / sum(rate(stage3_decisions_total[5m]))",
+        "legendFormat": "Block Rate %"
+      }],
+      "options": {
+        "thresholds": { "steps": [
+          {"color":"green","value":null},
+          {"color":"yellow","value":5},
+          {"color":"red","value":15}
+        ]}
+      }
+    },
+    {
+      "id": 4,
+      "title": "Decision Latency p50 / p95 / p99 (ms)",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 4, "w": 12, "h": 6 },
+      "targets": [
+        {"expr":"histogram_quantile(0.50, sum(rate(stage3_latency_ms_bucket[1m])) by (le))","legendFormat":"p50"},
+        {"expr":"histogram_quantile(0.95, sum(rate(stage3_latency_ms_bucket[1m])) by (le))","legendFormat":"p95"},
+        {"expr":"histogram_quantile(0.99, sum(rate(stage3_latency_ms_bucket[1m])) by (le))","legendFormat":"p99"}
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Stage 1 Early Exit Rate (%)",
+      "type": "timeseries",
+      "gridPos": { "x": 12, "y": 4, "w": 12, "h": 6 },
+      "targets": [{
+        "expr": "100 * sum(rate(stage1_early_exit_total[1m])) / sum(rate(stage1_predictions_total[1m]))",
+        "legendFormat": "Early Exit %"
+      }]
+    },
+    {
+      "id": 6,
+      "title": "Stage 1 P(fraud) Distribution",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 10, "w": 8, "h": 5 },
+      "targets": [{"expr":"stage1_p_fraud_latest","legendFormat":"Latest P(fraud)"}]
+    },
+    {
+      "id": 7,
+      "title": "Anomaly Detections (> 0.6 score)",
+      "type": "stat",
+      "gridPos": { "x": 8, "y": 10, "w": 4, "h": 5 },
+      "targets": [{"expr":"rate(stage2_anomaly_high_total[5m]) * 60","legendFormat":"Anomalies/min"}]
+    },
+    {
+      "id": 8,
+      "title": "Neo4j Graph Query Calls/s",
+      "type": "stat",
+      "gridPos": { "x": 12, "y": 10, "w": 4, "h": 5 },
+      "targets": [{"expr":"rate(stage2_neo4j_calls_total[1m])","legendFormat":"Graph queries/s"}]
+    },
+    {
+      "id": 9,
+      "title": "A/B Experiment — Action Distribution by Variant",
+      "type": "barchart",
+      "gridPos": { "x": 16, "y": 10, "w": 8, "h": 5 },
+      "targets": [{
+        "expr": "sum by (action, ab_variant) (rate(stage3_decisions_total[5m]))",
+        "legendFormat": "{{ab_variant}} — {{action}}"
+      }]
+    },
+    {
+      "id": 10,
+      "title": "Feature Engine Latency (ms)",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 15, "w": 12, "h": 5 },
+      "targets": [
+        {"expr":"histogram_quantile(0.95, rate(feature_engine_latency_ms_bucket[1m]))","legendFormat":"p95"},
+        {"expr":"histogram_quantile(0.50, rate(feature_engine_latency_ms_bucket[1m]))","legendFormat":"p50"}
+      ]
+    },
+    {
+      "id": 11,
+      "title": "Cold Starts (no customer history)",
+      "type": "timeseries",
+      "gridPos": { "x": 12, "y": 15, "w": 12, "h": 5 },
+      "targets": [{"expr":"rate(feature_engine_cold_starts_total[1m])","legendFormat":"Cold starts/s"}]
+    },
+    {
+      "id": 12,
+      "title": "Service Health (up=1, down=0)",
+      "type": "stat",
+      "gridPos": { "x": 0, "y": 20, "w": 24, "h": 3 },
+      "targets": [
+        {"expr":"up{job='stage1-fast-risk'}","legendFormat":"Stage 1"},
+        {"expr":"up{job='stage2-deep-intel'}","legendFormat":"Stage 2"},
+        {"expr":"up{job='stage3-decision-engine'}","legendFormat":"Stage 3"},
+        {"expr":"up{job='redpanda'}","legendFormat":"Redpanda"},
+        {"expr":"up{job='redis'}","legendFormat":"Redis"},
+        {"expr":"up{job='postgres'}","legendFormat":"PostgreSQL"},
+        {"expr":"up{job='neo4j'}","legendFormat":"Neo4j"},
+        {"expr":"up{job='clickhouse'}","legendFormat":"ClickHouse"}
+      ],
+      "options": {
+        "colorMode": "background",
+        "thresholds": {"steps":[{"color":"red","value":null},{"color":"green","value":1}]}
+      }
+    }
+  ]
+}

@@ -1,0 +1,121 @@
+# =============================================================================
+# Prometheus Configuration — Fraud Detection System
+# Scrapes metrics from all microservices and infrastructure
+# =============================================================================
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  scrape_timeout: 10s
+  external_labels:
+    environment: "poc"
+    system: "fraud-detection"
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []  # Add alertmanager here when configured
+
+rule_files:
+  - "/etc/prometheus/alert_rules.yml"
+
+scrape_configs:
+
+  # ---------------------------------------------------------------------------
+  # Prometheus self-monitoring
+  # ---------------------------------------------------------------------------
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  # ---------------------------------------------------------------------------
+  # CORE LAYER
+  # ---------------------------------------------------------------------------
+
+  - job_name: "redpanda"
+    static_configs:
+      - targets: ["redpanda:9644"]
+    metrics_path: "/metrics"
+    scrape_interval: 15s
+
+  - job_name: "redis"
+    static_configs:
+      - targets: ["redis-exporter:9121"]
+    scrape_interval: 15s
+
+  - job_name: "postgres"
+    static_configs:
+      - targets: ["postgres-exporter:9187"]
+    scrape_interval: 15s
+
+  # ---------------------------------------------------------------------------
+  # DATA LAYER
+  # ---------------------------------------------------------------------------
+
+  - job_name: "clickhouse"
+    static_configs:
+      - targets: ["clickhouse:8123"]
+    metrics_path: "/metrics"
+    scrape_interval: 30s
+
+  - job_name: "neo4j"
+    static_configs:
+      - targets: ["neo4j:2004"]
+    metrics_path: "/metrics"
+    scrape_interval: 30s
+
+  - job_name: "minio"
+    static_configs:
+      - targets: ["minio:9000"]
+    metrics_path: "/minio/v2/metrics/cluster"
+    scrape_interval: 30s
+
+  # ---------------------------------------------------------------------------
+  # COMPUTE LAYER
+  # ---------------------------------------------------------------------------
+
+  - job_name: "flink"
+    static_configs:
+      - targets: ["flink-jobmanager:8081"]
+    metrics_path: "/metrics"
+    scrape_interval: 15s
+
+  - job_name: "mlflow"
+    static_configs:
+      - targets: ["mlflow:5000"]
+    metrics_path: "/metrics"
+    scrape_interval: 30s
+
+  # ---------------------------------------------------------------------------
+  # APPLICATION MICROSERVICES (added as services come online in Phase 3+)
+  # ---------------------------------------------------------------------------
+
+  - job_name: "stage1-fast-risk"
+    static_configs:
+      - targets: ["stage1-service:8100"]
+    metrics_path: "/metrics"
+    scrape_interval: 10s
+
+  - job_name: "stage2-deep-intel"
+    static_configs:
+      - targets: ["stage2-service:8200"]
+    metrics_path: "/metrics"
+    scrape_interval: 10s
+
+  - job_name: "stage3-decision-engine"
+    static_configs:
+      - targets: ["stage3-service:8300"]
+    metrics_path: "/metrics"
+    scrape_interval: 10s
+
+  - job_name: "action-engine"
+    static_configs:
+      - targets: ["action-engine:8400"]
+    metrics_path: "/metrics"
+    scrape_interval: 10s
+
+  - job_name: "api-gateway"
+    static_configs:
+      - targets: ["api-gateway:8000"]
+    metrics_path: "/metrics"
+    scrape_interval: 10s
