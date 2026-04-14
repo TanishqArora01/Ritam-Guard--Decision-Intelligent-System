@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ../apps/backend
+    ports:
+      - "8000:8000"
+    environment:
+      - JWT_SECRET=ritamguard-secret-key-change-in-prod
+    volumes:
+      - ../apps/backend:/app
+    restart: unless-stopped
+
+  frontend:
+    build: ../apps/frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://backend:8000
+      - NEXT_PUBLIC_WS_URL=ws://backend:8000
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  stream-simulator:
+    build:
+      context: ../services/stream-simulator
+      dockerfile: Dockerfile
+    environment:
+      - BACKEND_URL=http://backend:8000
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  scoring-engine:
+    build:
+      context: ../services/scoring-engine
+      dockerfile: Dockerfile
+    ports:
+      - "8002:8002"
+    restart: unless-stopped
