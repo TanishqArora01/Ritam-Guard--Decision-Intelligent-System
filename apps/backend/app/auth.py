@@ -18,16 +18,17 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/token", auto_error=False)
 
-# Hardcoded demo users (production would use a database)
+# ⚠️  DEMO CREDENTIALS – change passwords via env vars ANALYST_PASSWORD and ADMIN_PASSWORD in production.
+# Production deployments should use a proper user database (PostgreSQL + hashed credentials).
 USERS_DB: dict[str, dict] = {
     "analyst": {
         "username": "analyst",
-        "hashed_password": pwd_context.hash("analyst123"),
+        "hashed_password": pwd_context.hash(os.getenv("ANALYST_PASSWORD", "analyst123")),
         "role": "analyst",
     },
     "admin": {
         "username": "admin",
-        "hashed_password": pwd_context.hash("admin123"),
+        "hashed_password": pwd_context.hash(os.getenv("ADMIN_PASSWORD", "admin123")),
         "role": "admin",
     },
 }

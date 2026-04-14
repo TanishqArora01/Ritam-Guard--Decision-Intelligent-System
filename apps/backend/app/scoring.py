@@ -38,6 +38,7 @@ def stage1_score(
     if amount > 10_000:
         features["amount_high"] = min((amount - 10_000) / 40_000, 1.0)
     elif amount < 1:
+        features["amount_high"] = 0.0
         features["amount_suspicious_low"] = 0.8
     else:
         features["amount_high"] = 0.0

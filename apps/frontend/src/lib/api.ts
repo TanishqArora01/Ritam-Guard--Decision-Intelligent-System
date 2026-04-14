@@ -72,7 +72,7 @@ export const api = {
       assigned_to: string
       priority: string
       notes: string[]
-      resolution: string
+      resolution: string | null
     }>
   ): Promise<Case> =>
     request<Case>(`/api/cases/${id}`, { method: 'PUT', body: JSON.stringify(data) }),

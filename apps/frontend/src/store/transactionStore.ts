@@ -26,9 +26,12 @@ export const useTransactionStore = create<TransactionState>((set) => ({
   filter: { status: '', minAmount: 0, maxAmount: 100_000 },
 
   addTransaction: (txn) =>
-    set((state) => ({
-      transactions: [txn, ...state.transactions].slice(0, 500),
-    })),
+    set((state) => {
+      // Deduplicate by ID
+      const exists = state.transactions.some((t) => t.id === txn.id)
+      if (exists) return state
+      return { transactions: [txn, ...state.transactions].slice(0, 500) }
+    }),
 
   setTransactions: (txns) => set({ transactions: txns }),
 

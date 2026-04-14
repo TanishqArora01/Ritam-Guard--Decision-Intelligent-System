@@ -6,6 +6,8 @@ services:
     ports:
       - "8000:8000"
     environment:
+      # ⚠️  Override JWT_SECRET with a strong random value in production.
+      # Example: JWT_SECRET=$(openssl rand -hex 32)
       - JWT_SECRET=ritamguard-secret-key-change-in-prod
     volumes:
       - ../apps/backend:/app

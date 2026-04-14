@@ -75,14 +75,14 @@ function CaseCard({ c, onUpdate }: CaseCardProps) {
       <div className="flex flex-wrap gap-2">
         <select
           value={c.status}
-          onChange={(e) => onUpdate(c.id, { status: e.target.value })}
+          onChange={(e) => onUpdate(c.id, { status: e.target.value as Case['status'] })}
           className="text-xs bg-gray-700 text-gray-300 rounded px-2 py-1 border border-gray-600"
         >
           {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
         </select>
         <select
           value={c.priority}
-          onChange={(e) => onUpdate(c.id, { priority: e.target.value })}
+          onChange={(e) => onUpdate(c.id, { priority: e.target.value as Case['priority'] })}
           className="text-xs bg-gray-700 text-gray-300 rounded px-2 py-1 border border-gray-600"
         >
           {PRIORITIES.map((p) => <option key={p} value={p}>{p}</option>)}
