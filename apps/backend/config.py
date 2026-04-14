@@ -11,6 +11,7 @@ class AppConfig:
     host:    str = os.getenv("HOST", "0.0.0.0")
     port:    int = int(os.getenv("PORT", "8400"))
     debug:   bool = os.getenv("DEBUG", "false").lower() == "true"
+    disable_db_init: bool = os.getenv("DISABLE_DB_INIT", "false").lower() == "true"
 
     # PostgreSQL (decisions + users + review queue)
     postgres_dsn: str = os.getenv(

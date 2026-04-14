@@ -59,6 +59,18 @@ Current default is permissive for bootstrap deployment.
 - Build Command: `pip install -r requirements.txt`
 - Start Command: `uvicorn main:app --host 0.0.0.0 --port 10000`
 
+Set environment variables in Render:
+
+- `DISABLE_DB_INIT=true`
+- `CORS_ORIGINS=*`
+- `JWT_SECRET=<strong-random-secret>`
+
+If you are not deploying gateway yet, set:
+
+- `GATEWAY_URL=https://example.invalid`
+
+This prevents startup from failing on Docker-only hostnames (`postgres`, `api-gateway`).
+
 ### 7) Deploy
 
 After deploy, Render will provide:

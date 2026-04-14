@@ -77,10 +77,14 @@ async def lifespan(app: FastAPI):
     logger.info("  Port:     %d", config.port)
     logger.info("  Postgres: %s", config.postgres_dsn.split("@")[-1])
     logger.info("  Gateway:  %s", config.gateway_url)
+    logger.info("  DB init:  %s", "disabled" if config.disable_db_init else "enabled")
     logger.info("=" * 55)
 
-    await init_db()
-    await seed_users()
+    if config.disable_db_init:
+        logger.warning("DISABLE_DB_INIT=true; skipping PostgreSQL initialization and user seeding.")
+    else:
+        await init_db()
+        await seed_users()
     logger.info("App backend ready.")
     yield
 
