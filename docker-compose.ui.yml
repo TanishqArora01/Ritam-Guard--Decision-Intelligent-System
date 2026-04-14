@@ -40,7 +40,7 @@ services:
 
   app-backend:
     build:
-      context: ./apps/backend-api
+      context: ./apps/backend
       dockerfile: Dockerfile
     image: fraud-app-backend:latest
     container_name: fraud_app_backend
@@ -78,7 +78,7 @@ services:
 
   frontend:
     build:
-      context: ./apps/web-portal
+      context: ./apps/frontend
       dockerfile: Dockerfile
       args:
         NEXT_PUBLIC_API_URL: http://localhost:8405

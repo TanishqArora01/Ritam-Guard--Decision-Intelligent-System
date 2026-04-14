@@ -14,7 +14,7 @@ echo "=== Tests (suite: $SUITE) ==="
 if [[ "$SUITE" == "all" || "$SUITE" == "unit" ]]; then
   echo "Unit tests - pytest"
   if command -v pytest >/dev/null 2>&1; then
-    if pytest "$ROOT" --ignore="$ROOT/apps/web-portal" --ignore="$ROOT/platform" -q --tb=short -m "not integration"; then
+    if pytest "$ROOT" --ignore="$ROOT/apps/frontend" --ignore="$ROOT/platform" -q --tb=short -m "not integration"; then
       ok "pytest unit tests passed"
     else
       fail "pytest unit tests failed"

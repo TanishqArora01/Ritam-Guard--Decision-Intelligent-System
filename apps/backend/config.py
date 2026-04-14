@@ -38,7 +38,7 @@ class AppConfig:
     cors_origins: List[str] = field(default_factory=lambda: [
         o.strip() for o in os.getenv(
             "CORS_ORIGINS",
-            "http://localhost:3001,http://localhost:3005,http://frontend:3001"
+            "*"
         ).split(",")
     ])
 

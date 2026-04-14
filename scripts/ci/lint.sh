@@ -25,7 +25,7 @@ echo ""
 echo "Python - bandit"
 if command -v bandit >/dev/null 2>&1; then
   PY_DIRS=()
-  for d in "$ROOT"/apps/backend-api "$ROOT"/services/* "$ROOT"/platform/scripts; do
+  for d in "$ROOT"/apps/backend "$ROOT"/services/* "$ROOT"/platform/scripts; do
     [[ -d "$d" ]] && PY_DIRS+=("$d")
   done
   if [[ ${#PY_DIRS[@]} -gt 0 ]]; then
@@ -43,7 +43,7 @@ fi
 
 echo ""
 echo "TypeScript - eslint"
-FRONTEND="$ROOT/apps/web-portal"
+FRONTEND="$ROOT/apps/frontend"
 if [[ -d "$FRONTEND" ]] && command -v npx >/dev/null 2>&1; then
   if [[ -f "$FRONTEND/.eslintrc.json" || -f "$FRONTEND/.eslintrc.js" || -f "$FRONTEND/eslint.config.js" ]]; then
     if (cd "$FRONTEND" && npx eslint . --ext .ts,.tsx --max-warnings 0); then
@@ -52,7 +52,7 @@ if [[ -d "$FRONTEND" ]] && command -v npx >/dev/null 2>&1; then
       fail "eslint found issues"
     fi
   else
-    skip "eslint config not present in apps/web-portal"
+    skip "eslint config not present in apps/frontend"
   fi
 else
   skip "frontend or npx not found"

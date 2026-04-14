@@ -15,7 +15,7 @@ echo "=== Security Scan ==="
 echo "Bandit"
 if command -v bandit >/dev/null 2>&1; then
   BANDIT_OUT="$REPORT_DIR/bandit.json"
-  if bandit -r "$ROOT/apps/backend-api" "$ROOT/services" --skip B101,B105,B601 --format json -o "$BANDIT_OUT" >/dev/null 2>&1; then
+  if bandit -r "$ROOT/apps/backend" "$ROOT/services" --skip B101,B105,B601 --format json -o "$BANDIT_OUT" >/dev/null 2>&1; then
     ok "bandit scan complete"
   else
     fail "bandit reported findings (see $BANDIT_OUT)"
